@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@pancakeswap/pancake-swap-lib": "^0.0.4",
+    "hardhat-tracer": "^2.6.0",
     "keccak256": "^1.0.6",
     "merkletreejs": "^0.3.10",
     "prompt-sync": "^4.2.0",

@@ -5,13 +5,14 @@ import "./interfaces/IUniswapV2Router.sol";
 import "./interfaces/IWBNB.sol";
 import "./interfaces/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "hardhat/console.sol";
 
 /**
- * @title SwapBNBtoGFAL - GAMES FOR A LIVING
+ * @title SwapBNBGFAL - GAMES FOR A LIVING
  * @dev Smart contract to swaps BNB to GFAL by performing internal exchanges from BNB to WBNB to USDT to GFAL.
  * Note: Constructor and functions that need gas fee are set as payable to avoid OPCODES checking msg.value.
  */
-contract SwapBNBtoGFAL is ReentrancyGuard {
+contract SwapBNBGFAL is ReentrancyGuard {
     // PancakeSwapV2Router
     IUniswapV2Router private constant router =
         IUniswapV2Router(0x10ED43C718714eb63d5aA57B78B54704E256024E);
@@ -29,6 +30,8 @@ contract SwapBNBtoGFAL is ReentrancyGuard {
      *@param Swapper The address of the account that performed the swap.
      */
     event SwappedBNBtoGFAL(uint256 BNB, uint256 GFAL, address indexed Swapper);
+
+    event SwappedGFALtoBNB(uint256 GFAL, uint256 BNB, address indexed Swapper);
 
     constructor() payable {}
 
@@ -54,20 +57,50 @@ contract SwapBNBtoGFAL is ReentrancyGuard {
         path[1] = address(USDT);
         path[2] = address(GFAL);
 
-        try
-            router.swapExactTokensForTokens(
-                balanceWBNB,
-                amountOutMin,
-                path,
-                msg.sender,
-                block.timestamp
-            )
-        {
-            uint[] memory amounts = router.getAmountsOut(balanceWBNB, path);
-            emit SwappedBNBtoGFAL(msg.value, amounts[2], msg.sender);
-            return amounts[2];
-        } catch {
-            revert("Swap failed");
-        }
+        router.swapExactTokensForTokens(
+            balanceWBNB,
+            amountOutMin,
+            path,
+            msg.sender,
+            block.timestamp
+        );
+
+        uint[] memory amounts = router.getAmountsOut(balanceWBNB, path);
+        emit SwappedBNBtoGFAL(msg.value, amounts[2], msg.sender);
+        return amounts[2];
     }
+
+    // todo!
+    function swapGFALforBNB(
+        uint256 amountGFAL,
+        uint256 amountOutMin
+    ) external nonReentrant returns (uint amountOut) {
+        require(amountGFAL != 0, "amountGFAL cannot be 0");
+        require(amountOutMin != 0, "AmountOutMin cannot be 0");
+
+        GFAL.transferFrom(msg.sender, address(this), amountGFAL);
+        GFAL.approve(address(router), amountGFAL);
+
+        address[] memory path;
+        path = new address[](3);
+        path[0] = address(GFAL);
+        path[1] = address(USDT);
+        path[2] = address(WBNB);
+
+        router.swapExactTokensForTokens(
+            amountGFAL,
+            amountOutMin,
+            path,
+            address(this),
+            block.timestamp
+        );
+        uint[] memory amounts = router.getAmountsOut(amountGFAL, path);
+        WBNB.withdraw(amounts[2]);
+        payable(msg.sender).transfer(address(this).balance);
+
+        emit SwappedGFALtoBNB(amountGFAL, amounts[2], msg.sender);
+        return amounts[2];
+    }
+
+    receive() external payable {}
 }

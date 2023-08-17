@@ -3,6 +3,7 @@ require("@nomicfoundation/hardhat-toolbox");
 require("@nomiclabs/hardhat-etherscan");
 require("hardhat-gas-reporter");
 require("solidity-coverage");
+require("hardhat-tracer");
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -10,12 +11,12 @@ module.exports = {
 
   networks: {
     hardhat: {
-      // chainId: 1337,
-      // forking: {
-      //   url: process.env.WEB3_HTTP_PROVIDER_MAIN,
-      //   blockNumber: 29091905,
-      // },
-      // gas: 1800000,
+      chainId: 1337,
+      forking: {
+        url: process.env.WEB3_HTTP_PROVIDER_MAIN,
+        // blockNumber: 29091905,
+      },
+      gas: 1800000,
     },
     localhost: {
       url: "http://127.0.0.1:8545",

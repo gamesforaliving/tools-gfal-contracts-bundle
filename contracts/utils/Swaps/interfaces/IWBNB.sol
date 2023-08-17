@@ -3,7 +3,6 @@ pragma solidity 0.8.19;
 
 import "./IERC20.sol";
 
-
 interface IWBNB is IERC20 {
     function deposit() external payable;
 
