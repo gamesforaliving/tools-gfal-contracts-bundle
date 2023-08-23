@@ -10,11 +10,11 @@ const { ethers } = require("hardhat");
 // Constants
 
 async function main() {
-  const SwapBNBtoGFAL = await ethers.getContractFactory("SwapBNBtoGFAL");
-  const swapBNBtoGFAL = await SwapBNBtoGFAL.deploy();
-  await swapBNBtoGFAL.deployed();
+  const SwapBNBGFAL = await ethers.getContractFactory("SwapBNBGFAL");
+  const swapBNBGFAL = await SwapBNBGFAL.deploy();
+  await swapBNBGFAL.deployed();
 
-  console.log(`SwapBNBtoGFAL deployed to ${swapBNBtoGFAL.address}`);
+  console.log(`swapBNBGFAL deployed to ${swapBNBGFAL.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

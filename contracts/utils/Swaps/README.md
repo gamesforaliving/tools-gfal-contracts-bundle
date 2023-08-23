@@ -1,6 +1,6 @@
-# SwapBNBtoGFAL Smart Contract
+# SwapBNBGFAL Smart Contract
 
-The SwapBNBtoGFAL smart contract is a contract that facilitates the swapping of BNB for GFAL. It utilizes the PancakeSwap V2 Router and internally wraps from BNB to WBNB (Wrapped BNB), to swap WBNB for USDT (Tether), and finally USDT for to GFAL.
+The SwapBNBGFAL smart contract is a contract that facilitates the swapping of BNB for GFAL. It utilizes the PancakeSwap V2 Router and internally wraps from BNB to WBNB (Wrapped BNB), to swap WBNB for USDT (Tether), and finally USDT for to GFAL.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ The SwapBNBtoGFAL smart contract is a contract that facilitates the swapping of 
 
 ## Usage
 
-The `SwapBNBtoGFAL` contract allows users to swap BNB for GFAL by calling the `swapBNBforGFAL` function.
+The `SwapBNBGFAL` contract allows users to swap BNB for GFAL by calling the `swapBNBforGFAL` function.
 
 ### `swapBNBforGFAL` Function
 

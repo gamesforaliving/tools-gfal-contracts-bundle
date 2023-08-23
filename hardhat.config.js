@@ -16,7 +16,7 @@ module.exports = {
         url: process.env.WEB3_HTTP_PROVIDER_MAIN,
         // blockNumber: 29091905,
       },
-      gas: 1800000,
+      gas: 20000000,
     },
     localhost: {
       url: "http://127.0.0.1:8545",
