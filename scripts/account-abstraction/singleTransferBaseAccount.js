@@ -7,6 +7,7 @@ const bundlerPrivateKey = process.env.AA_SIGNER_PRIVATE_KEY;
 const walletOwnerPrivateKey = process.env.SIGNER_MAINNET_PRIVATE_KEY;
 const basicWalletAddress = process.env.BASIC_WALLET_ADDRESS_MAINNET;
 const receiverGFALAddress = "0x5a3D951B49DCdDd3ba14d80b46e44Ccc1C221cAF";
+const BNB_GFAL_RATE = 14369; // How much GFAL is 1 BNB? NO DECIMALS.
 
 const GFALTokenAddress = process.env.GFAL_TOKEN_MAINNET;
 
@@ -72,6 +73,7 @@ async function main() {
       transferRes.callData,
       transferRes.signature,
       gasPrice,
+      BNB_GFAL_RATE,
     ]),
     nonce: await provider.getTransactionCount(bundler.address),
     // gasLimit: 650103,

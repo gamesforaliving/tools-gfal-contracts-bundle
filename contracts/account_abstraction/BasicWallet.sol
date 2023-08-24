@@ -6,7 +6,7 @@ import "../utils/Swaps/interfaces/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 contract BasicWallet {
     bytes32 private constant _HASHED_NAME = keccak256("GFAL Fee Smart Account");
@@ -16,14 +16,9 @@ contract BasicWallet {
     uint256 public nonce;
     uint256 private CHAIN_ID = 97; // Testnet 97, Mainnet 56
 
-    uint256 private constant POST_OP_GAS = 35000;
+    uint256 private constant POST_OP_GAS = 51494; // Estimated Gass spended for ERC-20Transfer
 
     IGFALProxy immutable GFALProxy;
-
-    // enum transactionMode {
-    //     SponsoredTx,
-    //     FeesGfal
-    // }
 
     event postOpFinished(uint256 gfalReceipt, uint256 gasReceipt);
 
@@ -121,16 +116,18 @@ contract BasicWallet {
         bytes memory callData,
         bytes memory signature,
         uint256 gasPrice,
-        uint256 GFALPrice // 1GFAL to BNB
+        uint256 BNB_GFAL_Rate, // 1BNB to GFAL
+        bool isSponsored
     ) public payable {
         uint256 preGas = gasleft();
+        require(BNB_GFAL_Rate != 0, "GasPrice cannot be 0");
         require(gasPrice != 0, "GasPrice cannot be 0");
         _requireBundlerOrOwner();
         executeOp(target, value, callData, signature);
         // Pay gas back in GFAL or deal with any logic
-        if (GFALProxy.checkAdmin(msg.sender)) {
+        if (GFALProxy.checkAdmin(msg.sender) && !isSponsored) {
             uint256 gasLeft = gasleft();
-            postOp(preGas - gasLeft, gasPrice, GFALPrice);
+            postOp(preGas - gasLeft, gasPrice, BNB_GFAL_Rate);
         }
     }
 
@@ -141,12 +138,14 @@ contract BasicWallet {
         bytes[] memory callData,
         bytes[] memory signature,
         uint256 gasPrice,
-        uint256 GFALPrice // 1GFAL to BNB
+        uint256 BNB_GFAL_Rate, // 1BNB to GFAL
+        bool isSponsored
     ) external payable {
         uint256 preGas = gasleft();
         require(target.length == callData.length, "wrong array lengths");
         require(value.length == callData.length, "wrong array lengths");
         require(signature.length == callData.length, "wrong array lengths");
+        require(BNB_GFAL_Rate != 0, "GasPrice cannot be 0");
         require(gasPrice != 0, "GasPrice cannot be 0");
         _requireBundlerOrOwner();
 
@@ -160,8 +159,8 @@ contract BasicWallet {
 
         // Pay gas back in GFAL or deal with any logic
         uint256 gasLeft = gasleft();
-        if (GFALProxy.checkAdmin(msg.sender)) {
-            postOp(preGas - gasLeft, gasPrice, GFALPrice);
+        if (GFALProxy.checkAdmin(msg.sender) && !isSponsored) {
+            postOp(preGas - gasLeft, gasPrice, BNB_GFAL_Rate);
         }
     }
 
@@ -203,16 +202,11 @@ contract BasicWallet {
     function postOp(
         uint256 gasUsed,
         uint256 gasPrice,
-        uint256 GFALPrice // 1BNB to GFAL
+        uint256 BNB_GFAL_Rate // 1BNB to GFAL
     ) internal {
-        // Extra Gas spent for the GFAL transfer: 51494.
-        // Start gasFee:
-        uint256 gasReceipt = (((gasUsed))) * (gasPrice);
-        uint256 GFALFee = gasReceipt * GFALPrice;
+        uint256 gasReceipt = (((gasUsed + POST_OP_GAS + 21000))) * (gasPrice);
+        uint256 GFALFee = gasReceipt * BNB_GFAL_Rate;
 
-        console.log("GasReceipt: ", gasReceipt);
-        console.log("GFALFee: ", GFALFee);
-        // uint256 GFALFee = getConversionBNBtoGFAL(gasReceipt, GFALPrice);
         IERC20(GFALProxy.getGfalToken()).transfer(msg.sender, GFALFee);
         emit postOpFinished(GFALFee, gasReceipt);
     }

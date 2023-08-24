@@ -75,6 +75,38 @@ async function getSignatureAndValidate(
   throw "\n- ❌ Signature error...";
 }
 
+async function getBNBTxSignatureAndValidate(
+  basicWallet,
+  signerPrivateKey,
+  receiver,
+  value,
+  nonce
+) {
+  const callData = "0x";
+  const userOpHash = getUserOperationHashed(
+    receiver,
+    nonce,
+    callData,
+    value,
+    chainId
+  );
+
+  const signature = await signMessage(userOpHash, signerPrivateKey);
+
+  if (
+    await basicWallet.verifySignature(
+      receiver,
+      callData,
+      value,
+      nonce,
+      signature
+    )
+  ) {
+    return { callData, signature };
+  }
+  throw "\n- ❌ Signature error...";
+}
+
 // main();
 
 module.exports = {
@@ -82,4 +114,5 @@ module.exports = {
   getUserOperationHashed,
   signMessage,
   getSignatureAndValidate,
+  getBNBTxSignatureAndValidate,
 };

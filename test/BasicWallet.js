@@ -5,6 +5,8 @@ const {
   getCallData,
   getUserOperationHashed,
   signMessage,
+  getSignatureAndValidate,
+  getBNBTxSignatureAndValidate,
 } = require("../scripts/account-abstraction/userOp-signer");
 
 const AA_SIGNER_PUBLIC_KEY = process.env.AA_SIGNER_PUBLIC_KEY;
@@ -147,6 +149,7 @@ describe("BasicWallet", function () {
       userProfile,
       AA_SIGNER_PUBLIC_KEY,
       GFAL_WHALE,
+      BNB_WHALE,
       feeData,
     };
   }
@@ -161,9 +164,121 @@ describe("BasicWallet", function () {
     expect(userProfile.accountAddress).to.equal(basicWallet.address);
   });
 
+  it("Transfer Value from the Smart Wallet (BNB)", async () => {
+    const { userProfile, basicWallet, bundler, BNB_WHALE } = await loadFixture(
+      deployContracts
+    );
+
+    const BNBtopUp = {
+      to: userProfile.accountAddress,
+      value: ethers.utils.parseEther("1"),
+    };
+
+    await BNB_WHALE.sendTransaction(BNBtopUp);
+
+    const WalletBNBbalanceBefore = await ethers.provider.getBalance(
+      userProfile.accountAddress
+    );
+    const SignerBNBbalanceBefore = await ethers.provider.getBalance(
+      userProfile.owner
+    );
+    console.log(
+      "BNB Balance Wallet After BNB Topped up: ",
+      ethers.utils.formatEther(WalletBNBbalanceBefore)
+    );
+
+    const BNBtransferRes = await getBNBTxSignatureAndValidate(
+      basicWallet,
+      SIGNER_MAINNET_PRIVATE_KEY,
+      userProfile.owner,
+      ethers.utils.parseUnits("0.1", "ether"),
+      await basicWallet.nonce()
+    );
+
+    console.log("\n- ✅ BNB Transfer signature: ", BNBtransferRes.signature);
+
+    const Tx = await basicWallet
+      .connect(bundler)
+      .handleOp(
+        userProfile.owner,
+        ethers.utils.parseUnits("0.1", "ether"),
+        BNBtransferRes.callData,
+        BNBtransferRes.signature,
+        await ethers.provider.getGasPrice(),
+        BNB_GFAL_RATE,
+        false
+      );
+
+    await Tx.wait();
+
+    const WalletBNBbalanceAfter = await ethers.provider.getBalance(
+      userProfile.accountAddress
+    );
+    const SignerBNBbalanceAfter = await ethers.provider.getBalance(
+      userProfile.owner
+    );
+
+    console.log(
+      "- WalletBNBbalanceBefore: ",
+      ethers.utils.formatEther(WalletBNBbalanceBefore)
+    );
+    console.log(
+      "- WalletBNBbalanceAfter",
+      ethers.utils.formatEther(WalletBNBbalanceAfter)
+    );
+
+    console.log(
+      "\n- SignerBNBbalanceBefore: ",
+      ethers.utils.formatEther(SignerBNBbalanceBefore)
+    );
+    console.log(
+      "- SignerBNBbalanceAfter",
+      ethers.utils.formatEther(SignerBNBbalanceAfter)
+    );
+
+    expect(WalletBNBbalanceAfter).to.be.lessThan(WalletBNBbalanceBefore);
+    expect(SignerBNBbalanceBefore).to.be.lessThan(SignerBNBbalanceAfter);
+  });
+
+  it("If Sponsored is true, None GFAL should be transferred", async () => {
+    const { bundler, GFALToken, basicWallet } = await loadFixture(
+      deployContracts
+    );
+
+    const GFALBalanceBefore = await GFALToken.balanceOf(bundler.address);
+
+    const transferRes = await getSignatureAndValidate(
+      basicWallet,
+      SIGNER_MAINNET_PRIVATE_KEY,
+      functionIdTransfer,
+      typesArgsTransfer,
+      functionArgsTransfer,
+      GFALToken.address,
+      0,
+      await basicWallet.nonce()
+    );
+
+    await basicWallet
+      .connect(bundler)
+      .handleOp(
+        GFALToken.address,
+        0,
+        transferRes.callData,
+        transferRes.signature,
+        await ethers.provider.getGasPrice(),
+        BNB_GFAL_RATE,
+        true
+      );
+
+    expect(await GFALToken.balanceOf(bundler.address)).to.equal(
+      GFALBalanceBefore + functionArgsTransfer[1]
+    );
+  });
+
   it("Verify expected wallet address matches Deployed Wallet Address SAME OWNER", async function () {
-    const { basicWalletFactory, bundler, walletOwner, feeData } =
-      await loadFixture(deployContracts);
+    const { basicWalletFactory, bundler, walletOwner } = await loadFixture(
+      deployContracts
+    );
 
     // 2nd Wallet creation
     const counterfactualWallet2 = await basicWalletFactory.getAddress(
@@ -288,8 +403,6 @@ describe("BasicWallet", function () {
       functionIdBalance,
       typesArgsBalance,
       functionArgsBalance,
-      walletOwner,
-      feeData,
     } = await loadFixture(deployContracts);
 
     const callData = getCallData(
@@ -321,8 +434,6 @@ describe("BasicWallet", function () {
       functionIdApprove,
       typesArgsApprove,
       functionArgsApprove,
-      GFALToken,
-      walletOwner,
       feeData,
     } = await loadFixture(deployContracts);
 
@@ -351,7 +462,8 @@ describe("BasicWallet", function () {
         callData_Approval,
         signature_Approval,
         feeData.gasPrice,
-        BNB_GFAL_RATE
+        BNB_GFAL_RATE,
+        false
       );
 
     const resultDecoded = ethers.utils.defaultAbiCoder.decode(
@@ -370,7 +482,6 @@ describe("BasicWallet", function () {
       typesArgsTransfer,
       functionArgsTransfer,
       GFALToken,
-      walletOwner,
       feeData,
     } = await loadFixture(deployContracts);
 
@@ -401,7 +512,8 @@ describe("BasicWallet", function () {
         callData_Transfer,
         signature_Transfer,
         feeData.gasPrice,
-        BNB_GFAL_RATE
+        BNB_GFAL_RATE,
+        false
       );
 
     const balanceAfter = await GFALToken.balanceOf(bundler.address);
@@ -424,12 +536,11 @@ describe("BasicWallet", function () {
       typesArgsApprove,
       functionArgsApprove,
       GFALToken,
-      walletOwner,
       feeData,
     } = await loadFixture(deployContracts);
 
     const balanceGFALBefore = await GFALToken.balanceOf(basicWallet.address);
-    const balanceBNBBefore = await Provider.getBalance(bundler.address);
+    const balanceBNBBefore = await ethers.provider.getBalance(bundler.address);
 
     const callData_Approval = getCallData(
       functionIdApprove,
@@ -474,19 +585,20 @@ describe("BasicWallet", function () {
         [callData_Approval, callData_Transaction],
         [signature_Approval, signature_Transaction],
         feeData.gasPrice,
-        BNB_GFAL_RATE
+        BNB_GFAL_RATE,
+        false,
+        { gasPrice: feeData.gasPrice }
       );
+
     const balanceGFALAfter = await GFALToken.balanceOf(basicWallet.address);
     const GFALresult =
       ethers.utils.formatUnits(balanceGFALAfter, "wei") -
       ethers.utils.formatUnits(balanceGFALBefore, "wei");
 
-    const balanceBNBAfter = await Provider.getBalance(bundler.address);
-    const BNBresult =
-      ethers.utils.formatUnits(balanceBNBAfter, "wei") -
-      ethers.utils.formatUnits(balanceBNBBefore, "wei");
-    console.log("balanceBNBAfter", balanceBNBAfter);
-    console.log("balanceBNBBefore", balanceBNBBefore);
+    const balanceBNBAfter = await ethers.provider.getBalance(bundler.address);
+    const BNBresult = balanceBNBBefore - balanceBNBAfter;
+    console.log("balanceBNBAfter", ethers.utils.formatEther(balanceBNBAfter));
+    console.log("balanceBNBBefore", ethers.utils.formatEther(balanceBNBBefore));
     console.log(
       "\n- BALANCE GFAL BEFORE: " + ethers.utils.formatUnits(balanceGFALBefore)
     );
@@ -508,19 +620,20 @@ describe("BasicWallet", function () {
     const GFALFeesPaid = Number(functionArgsTransfer[1]) + GFALresult;
     const GFALAfterFeeReceived = await GFALToken.balanceOf(bundler.address);
     console.log(
-      `\n- User just paid a Fee of  ${ethers.utils.formatEther(
+      `\n- User just Transferred and spent a Fee of  ${ethers.utils.formatEther(
         GFALFeesPaid.toString()
       )} GFALs`
     );
     console.log(
       "- Bundler got refunded in GFAL as fee: ",
-      ethers.utils.formatEther(GFALAfterFeeReceived)
+      ethers.utils.formatEther(
+        (GFALAfterFeeReceived - functionArgsTransfer[1]).toString()
+      )
     );
-    console.log(`- Bundler just paid a Fee of ${BNBresult} BNBs`);
+    console.log(
+      `- Bundler just paid a Fee of -${ethers.utils.formatEther(
+        BNBresult.toString()
+      )} BNBs`
+    );
   });
 });
-2720060000000000;
-211844000000000;
-201424000000000;
-20000000000;
-2000000000;
