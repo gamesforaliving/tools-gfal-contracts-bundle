@@ -30,8 +30,7 @@ async function main() {
     })
     .then((tx) => tx.wait());
 
-  console.log(receipt.events);
-  console.log(receipt.events[0].args);
+  console.log("Event emited: ", receipt.events[0].args);
   if (receipt.events.length > 0) {
     const baseAccountAddress = receipt.events[0].args[1];
     console.log(
