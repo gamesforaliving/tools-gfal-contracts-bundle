@@ -16,7 +16,9 @@ async function main() {
   console.log("GFALProxy: ", GFALProxy);
 
   const BasicWallet = await ethers.getContractFactory("BasicWallet", bundler);
-  const basicWallet = await BasicWallet.deploy(signer, GFALProxy);
+  const basicWallet = await BasicWallet.deploy(signer, GFALProxy, {
+    gasLimit: 2000000,
+  });
   await basicWallet.deployed();
 
   console.log(
