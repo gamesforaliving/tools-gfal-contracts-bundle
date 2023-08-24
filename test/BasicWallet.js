@@ -9,13 +9,13 @@ const {
 
 const AA_SIGNER_PUBLIC_KEY = process.env.AA_SIGNER_PUBLIC_KEY;
 const BNB_WHALE_ADDRESS = process.env.BNB_WHALE_HOLDER;
-const GFAL_TOKEN_MAINNET = process.env.GFAL_TOKEN_MAINNET;
+const GFAL_TOKEN_MAINNET = "0x47c454cA6be2f6DEf6f32b638C80F91c9c3c5949";
 const GFAL_WHALE_SIGNER = process.env.GFAL_WHALE_SIGNER;
 const SWAPPER_GFAL_BNB_ADDRESS = process.env.SWAPPER_GFAL_BNB_ADDRESS;
-const PROXY_ADDRESS = process.env.PROXY_ADDRESS;
+const PROXY_ADDRESS = "0x4e3BDf3776E7ea6FD7931Fd29a5e1d933A55357C";
 const SIGNER_MAINNET_PRIVATE_KEY = process.env.SIGNER_MAINNET_PRIVATE_KEY;
 
-const GFALPrice = 13875; // 1GFAL to BNB
+const BNB_GFAL_RATE = 14369; // How much GFAL is 1 BNB? NO DECIMALS.
 
 const Provider = new ethers.providers.JsonRpcProvider(
   process.env.WEB3_HTTP_PROVIDER_MAIN
@@ -350,8 +350,8 @@ describe("BasicWallet", function () {
         value,
         callData_Approval,
         signature_Approval,
-        feeData.gasPrice * 10,
-        GFALPrice
+        feeData.gasPrice,
+        BNB_GFAL_RATE
       );
 
     const resultDecoded = ethers.utils.defaultAbiCoder.decode(
@@ -400,8 +400,8 @@ describe("BasicWallet", function () {
         value,
         callData_Transfer,
         signature_Transfer,
-        feeData.gasPrice * 10,
-        GFALPrice
+        feeData.gasPrice,
+        BNB_GFAL_RATE
       );
 
     const balanceAfter = await GFALToken.balanceOf(bundler.address);
@@ -473,8 +473,8 @@ describe("BasicWallet", function () {
         [value, value],
         [callData_Approval, callData_Transaction],
         [signature_Approval, signature_Transaction],
-        feeData.gasPrice * 10,
-        GFALPrice
+        feeData.gasPrice,
+        BNB_GFAL_RATE
       );
     const balanceGFALAfter = await GFALToken.balanceOf(basicWallet.address);
     const GFALresult =

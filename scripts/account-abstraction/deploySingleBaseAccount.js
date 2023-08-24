@@ -4,7 +4,8 @@ const { ethers } = require("hardhat");
 // IT WILL DEPLOY TO MAINNET!
 async function main() {
   const signer = process.env.SIGNER_MAINNET;
-  const bundlerPrivateKey = process.env.AA_SIGNER_PRIVATE_KEY;
+  // const bundlerPrivateKey = process.env.AA_SIGNER_PRIVATE_KEY;
+  const bundlerPrivateKey = process.env.BUNDLER_PRIVATE_KEY_TESTNET;
   const GFALProxy = process.env.PROXY_ADDRESS;
 
   const provider = new ethers.providers.JsonRpcProvider(
@@ -17,7 +18,8 @@ async function main() {
 
   const BasicWallet = await ethers.getContractFactory("BasicWallet", bundler);
   const basicWallet = await BasicWallet.deploy(signer, GFALProxy, {
-    gasLimit: 2000000,
+    gasPrice: await provider.getGasPrice(),
+    gasLimit: 8500000,
   });
   await basicWallet.deployed();
 
