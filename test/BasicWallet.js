@@ -2,9 +2,6 @@ const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const {
-  getCallData,
-  getUserOperationHashed,
-  signMessage,
   getSignatureAndValidate,
   getBNBTxSignatureAndValidate,
 } = require("../scripts/account-abstraction/userOp-signer");
@@ -403,27 +400,26 @@ describe("BasicWallet", function () {
       functionIdBalance,
       typesArgsBalance,
       functionArgsBalance,
+      GFALToken,
     } = await loadFixture(deployContracts);
 
-    const callData = getCallData(
+    const balanceRes = await getSignatureAndValidate(
+      basicWallet,
+      SIGNER_MAINNET_PRIVATE_KEY,
       functionIdBalance,
       typesArgsBalance,
-      functionArgsBalance
+      functionArgsBalance,
+      GFALToken.address,
+      0,
+      await basicWallet.nonce()
     );
-    const userOpHash = getUserOperationHashed(
-      target,
-      await basicWallet.nonce(),
-      callData,
-      value,
-      chainId
-    );
-    const signature = await signMessage(userOpHash, SIGNER_MAINNET_PRIVATE_KEY);
+
     await basicWallet.verifySignature(
       target,
-      callData,
+      balanceRes.callData,
       value,
       await basicWallet.nonce(),
-      signature
+      balanceRes.signature
     );
   });
 
@@ -435,23 +431,18 @@ describe("BasicWallet", function () {
       typesArgsApprove,
       functionArgsApprove,
       feeData,
+      GFALToken,
     } = await loadFixture(deployContracts);
 
-    const callData_Approval = getCallData(
+    const approvalRes = await getSignatureAndValidate(
+      basicWallet,
+      SIGNER_MAINNET_PRIVATE_KEY,
       functionIdApprove,
       typesArgsApprove,
-      functionArgsApprove
-    );
-    const userOpHash_Approval = getUserOperationHashed(
-      target,
-      await basicWallet.nonce(),
-      callData_Approval,
-      value,
-      chainId
-    );
-    const signature_Approval = await signMessage(
-      userOpHash_Approval,
-      SIGNER_MAINNET_PRIVATE_KEY
+      functionArgsApprove,
+      GFALToken.address,
+      0,
+      await basicWallet.nonce()
     );
 
     const resultCoded = await basicWallet
@@ -459,8 +450,8 @@ describe("BasicWallet", function () {
       .handleOp(
         target,
         value,
-        callData_Approval,
-        signature_Approval,
+        approvalRes.callData,
+        approvalRes.signature,
         feeData.gasPrice,
         BNB_GFAL_RATE,
         false
@@ -487,21 +478,15 @@ describe("BasicWallet", function () {
 
     const balanceBefore = await GFALToken.balanceOf(bundler.address);
 
-    const callData_Transfer = getCallData(
+    const transferRes = await getSignatureAndValidate(
+      basicWallet,
+      SIGNER_MAINNET_PRIVATE_KEY,
       functionIdTransfer,
       typesArgsTransfer,
-      functionArgsTransfer
-    );
-    const userOpHash_Transfer = getUserOperationHashed(
-      target,
-      await basicWallet.nonce(),
-      callData_Transfer,
-      value,
-      chainId
-    );
-    const signature_Transfer = await signMessage(
-      userOpHash_Transfer,
-      SIGNER_MAINNET_PRIVATE_KEY
+      functionArgsTransfer,
+      GFALToken.address,
+      0,
+      await basicWallet.nonce()
     );
 
     await basicWallet
@@ -509,8 +494,8 @@ describe("BasicWallet", function () {
       .handleOp(
         target,
         value,
-        callData_Transfer,
-        signature_Transfer,
+        transferRes.callData,
+        transferRes.signature,
         feeData.gasPrice,
         BNB_GFAL_RATE,
         false
@@ -542,39 +527,26 @@ describe("BasicWallet", function () {
     const balanceGFALBefore = await GFALToken.balanceOf(basicWallet.address);
     const balanceBNBBefore = await ethers.provider.getBalance(bundler.address);
 
-    const callData_Approval = getCallData(
+    const approvalRes = await getSignatureAndValidate(
+      basicWallet,
+      SIGNER_MAINNET_PRIVATE_KEY,
       functionIdApprove,
       typesArgsApprove,
-      functionArgsApprove
-    );
-    const userOpHash_Approval = getUserOperationHashed(
-      target,
-      await basicWallet.nonce(),
-      callData_Approval,
-      value,
-      chainId
-    );
-    const signature_Approval = await signMessage(
-      userOpHash_Approval,
-      SIGNER_MAINNET_PRIVATE_KEY
+      functionArgsApprove,
+      GFALToken.address,
+      0,
+      await basicWallet.nonce()
     );
 
-    const callData_Transaction = getCallData(
+    const transferRes = await getSignatureAndValidate(
+      basicWallet,
+      SIGNER_MAINNET_PRIVATE_KEY,
       functionIdTransfer,
       typesArgsTransfer,
-      functionArgsTransfer
-    );
-
-    const userOpHash_Transaction = getUserOperationHashed(
-      target,
-      (await basicWallet.nonce()) + 1,
-      callData_Transaction,
-      value,
-      chainId
-    );
-    const signature_Transaction = await signMessage(
-      userOpHash_Transaction,
-      SIGNER_MAINNET_PRIVATE_KEY
+      functionArgsTransfer,
+      GFALToken.address,
+      0,
+      (await basicWallet.nonce()) + 1
     );
 
     await basicWallet
@@ -582,8 +554,8 @@ describe("BasicWallet", function () {
       .handleOps(
         [target, target],
         [value, value],
-        [callData_Approval, callData_Transaction],
-        [signature_Approval, signature_Transaction],
+        [approvalRes.callData, transferRes.callData],
+        [approvalRes.signature, transferRes.signature],
         feeData.gasPrice,
         BNB_GFAL_RATE,
         false,
