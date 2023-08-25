@@ -6,7 +6,7 @@ import "../utils/Swaps/interfaces/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 contract BasicWallet {
     bytes32 private constant _HASHED_NAME = keccak256("GFAL Fee Smart Account");
@@ -123,7 +123,7 @@ contract BasicWallet {
         require(BNB_GFAL_Rate != 0, "GasPrice cannot be 0");
         require(gasPrice != 0, "GasPrice cannot be 0");
         _requireBundlerOrOwner();
-        executeOp(target, value, callData, signature);
+        executeOp(target, value, callData, signature, nonce);
         // Pay gas back in GFAL or deal with any logic
         if (GFALProxy.checkAdmin(msg.sender) && !isSponsored) {
             uint256 gasLeft = gasleft();
@@ -151,7 +151,7 @@ contract BasicWallet {
 
         uint256 iterations = target.length;
         for (uint256 i = 0; i < iterations; ) {
-            executeOp(target[i], value[i], callData[i], signature[i]);
+            executeOp(target[i], value[i], callData[i], signature[i], nonce);
             unchecked {
                 i++;
             }
@@ -168,13 +168,14 @@ contract BasicWallet {
         address target,
         uint256 value,
         bytes memory callData,
-        bytes memory signature
+        bytes memory signature,
+        uint256 _nonce
     ) internal returns (bytes memory) {
         bool verified = verifySignature(
             target,
             callData,
             value,
-            nonce,
+            _nonce,
             signature
         );
         require(verified, "Invalid signature");
@@ -206,6 +207,8 @@ contract BasicWallet {
     ) internal {
         uint256 gasReceipt = (((gasUsed + POST_OP_GAS + 21000))) * (gasPrice);
         uint256 GFALFee = gasReceipt * BNB_GFAL_Rate;
+        console.log("GAS RECEIPT ", gasReceipt);
+        console.log("GFAL Fee: ", GFALFee);
 
         IERC20(GFALProxy.getGfalToken()).transfer(msg.sender, GFALFee);
         emit postOpFinished(GFALFee, gasReceipt);
