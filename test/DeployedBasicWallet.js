@@ -1,3 +1,4 @@
+const { loadPrivateKey } = require('../security/foundry-keystore.js');
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
@@ -10,7 +11,7 @@ const Provider = new ethers.providers.JsonRpcProvider(
 );
 const basicWalletAddress = process.env.BASIC_WALLET_ADDRESS_MAINNET;
 const receiverGFALAddress = "0xA6086628befd7D894F465507e645A9049CE21Dc9";
-const walletOwnerPrivateKey = process.env.SIGNER_MAINNET_PRIVATE_KEY;
+const walletOwnerPrivateKey = loadPrivateKey('SIGNER_MAINNET_PRIVATE_KEY');
 const GFALTokenAddress = process.env.GFAL_TOKEN_MAINNET;
 const GFAL_WHALE_SIGNER = process.env.GFAL_WHALE_SIGNER;
 const BNB_WHALE_ADDRESS = process.env.BNB_WHALE_HOLDER;

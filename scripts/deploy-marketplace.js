@@ -1,3 +1,4 @@
+const { loadPrivateKey } = require('../security/foundry-keystore.js');
 // We require the Hardhat Runtime Environment explicitly here. This is optional
 // but useful for running the script in a standalone fashion through `node <script>`.
 //
@@ -16,7 +17,7 @@ const ERC721 = 0;
 const ERC1155 = 1;
 
 async function main() {
-  const owner = new ethers.Wallet(process.env.OWNER_PRIVATE_KEY);
+  const owner = new ethers.Wallet(loadPrivateKey('OWNER_PRIVATE_KEY'));
 
   const GFALMarketplace = await hre.ethers.getContractFactory(
     "GFALMarketplace"

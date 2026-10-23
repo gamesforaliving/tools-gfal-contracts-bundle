@@ -1,3 +1,4 @@
+const { loadPrivateKey } = require('../security/foundry-keystore.js');
 // THIS SCRIPT WILL DEPLOY AND SET THE CONTRACTS FOR PRODUCTION!
 const hre = require("hardhat");
 const { ethers } = require("hardhat");
@@ -168,7 +169,7 @@ async function main() {
     process.env.WEB3_HTTP_PROVIDER_MAIN
   );
 
-  const Admin = new ethers.Wallet(process.env.BSC_PRIVATE_KEY, provider); // Ganache or local
+  const Admin = new ethers.Wallet(loadPrivateKey('BSC_PRIVATE_KEY'), provider); // Ganache or local
 
   // -ERC20 Token
   const gfalToken = new ethers.Contract(

@@ -1,10 +1,11 @@
+const { loadPrivateKey } = require('../../security/foundry-keystore.js');
 const hre = require("hardhat");
 const { ethers } = require("hardhat");
 const { getSignatureAndValidate } = require("./userOp-signer");
 
 const basicWalletABI = require("../../artifacts/contracts/account_abstraction/BasicWallet.sol/BasicWallet.json");
-const bundlerPrivateKey = process.env.AA_SIGNER_PRIVATE_KEY;
-const walletOwnerPrivateKey = process.env.SIGNER_MAINNET_PRIVATE_KEY;
+const bundlerPrivateKey = loadPrivateKey('AA_SIGNER_PRIVATE_KEY');
+const walletOwnerPrivateKey = loadPrivateKey('SIGNER_MAINNET_PRIVATE_KEY');
 const basicWalletAddress = process.env.BASIC_WALLET_ADDRESS_MAINNET;
 const receiverGFALAddress = "0x5a3D951B49DCdDd3ba14d80b46e44Ccc1C221cAF";
 const BNB_GFAL_RATE = 14369; // How much GFAL is 1 BNB? NO DECIMALS.

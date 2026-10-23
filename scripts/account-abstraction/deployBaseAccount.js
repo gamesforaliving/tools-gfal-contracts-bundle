@@ -1,3 +1,4 @@
+const { loadPrivateKey } = require('../../security/foundry-keystore.js');
 const hre = require("hardhat");
 const { ethers } = require("hardhat");
 
@@ -8,7 +9,7 @@ async function main() {
   // const BasicWalletFactoryAddress = process.env.ACCOUNT_FACTORY_MAINNET;
   const BasicWalletFactoryAddress = process.env.ACCOUNT_FACTORY_TESTNET;
   const signer = process.env.SIGNER_MAINNET;
-  const bundlerPrivateKey = process.env.BUNDLER_PRIVATE_KEY_TESTNET;
+  const bundlerPrivateKey = loadPrivateKey('BUNDLER_PRIVATE_KEY_TESTNET');
 
   const provider = new ethers.providers.JsonRpcProvider(
     process.env.WEB3_HTTP_PROVIDER_TEST

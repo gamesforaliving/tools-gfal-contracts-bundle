@@ -1,9 +1,10 @@
+const { loadPrivateKey } = require('../../security/foundry-keystore.js');
 const hre = require("hardhat");
 const { ethers } = require("hardhat");
 const { getSignatureAndValidate } = require("./userOp-signer");
 
-const bundlerPrivateKey = process.env.BUNDLER_PRIVATE_KEY_TESTNET;
-const walletOwnerPrivateKey = process.env.SIGNER_MAINNET_PRIVATE_KEY;
+const bundlerPrivateKey = loadPrivateKey('BUNDLER_PRIVATE_KEY_TESTNET');
+const walletOwnerPrivateKey = loadPrivateKey('SIGNER_MAINNET_PRIVATE_KEY');
 const basicWalletAddress = process.env.BASIC_WALLET_ADDRESS_MAINNET;
 // const receiverGFALAddress = process.env.AA_SIGNER_PUBLIC_KEY;
 const receiverGFALAddress = "0xA6086628befd7D894F465507e645A9049CE21Dc9";

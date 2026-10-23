@@ -1,3 +1,4 @@
+const { loadPrivateKey } = require('../../security/foundry-keystore.js');
 // We require the Hardhat Runtime Environment explicitly here. This is optional
 // but useful for running the script in a standalone fashion through `node <script>`.
 //
@@ -45,7 +46,7 @@ const VESTING_SCHEDULE = {
 const GFAL_TOKEN = process.env.GFAL_TOKEN_MAINNET
 
 async function main() {
-  const vester = new ethers.Wallet(process.env.VESTER_PRIVATE_KEY_MAINNET)
+  const vester = new ethers.Wallet(loadPrivateKey('VESTER_PRIVATE_KEY_MAINNET'))
 
   const VestingBasic = await hre.ethers.getContractFactory("VestingBasic")
   const vestingBasic = await VestingBasic.deploy(GFAL_TOKEN, "0xCDcE15FB96295773e305130D58D4cd6BE6704A16", UNLOCK_TIME)

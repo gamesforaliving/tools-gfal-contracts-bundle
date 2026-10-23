@@ -1,3 +1,4 @@
+const { loadPrivateKey } = require('../security/foundry-keystore.js');
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
@@ -12,7 +13,7 @@ const GFAL_TOKEN_MAINNET = "0x47c454cA6be2f6DEf6f32b638C80F91c9c3c5949";
 const GFAL_WHALE_SIGNER = process.env.GFAL_WHALE_SIGNER;
 const SWAPPER_GFAL_BNB_ADDRESS = process.env.SWAPPER_GFAL_BNB_ADDRESS;
 const PROXY_ADDRESS = "0x4e3BDf3776E7ea6FD7931Fd29a5e1d933A55357C";
-const SIGNER_MAINNET_PRIVATE_KEY = process.env.SIGNER_MAINNET_PRIVATE_KEY;
+const SIGNER_MAINNET_PRIVATE_KEY = loadPrivateKey('SIGNER_MAINNET_PRIVATE_KEY');
 
 const BNB_GFAL_RATE = 14369; // How much GFAL is 1 BNB? NO DECIMALS.
 

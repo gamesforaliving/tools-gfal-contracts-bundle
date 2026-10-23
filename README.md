@@ -1,3 +1,5 @@
+> Operational signing now uses encrypted Foundry keystores. Follow [KEYSTORE_MIGRATION.md](KEYSTORE_MIGRATION.md); older raw private key environment instructions below are superseded.
+
 # Games for a Living (GFAL) Web3 Contract Bundle
 
 Welcome to the Games for a Living (GFAL) Web3 Contract Bundle repository! This repository contains all the tests, deployment scripts and Solidity smart contracts implemented in the GFAL ecosystem.

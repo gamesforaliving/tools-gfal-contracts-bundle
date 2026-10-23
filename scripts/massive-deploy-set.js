@@ -1,3 +1,4 @@
+const { loadPrivateKey } = require('../security/foundry-keystore.js');
 // THIS SCRIPT WILL DEPLOY AND SET THE CONTRACTS FOR PRODUCTION!
 const hre = require("hardhat");
 const { ethers } = require("hardhat");
@@ -34,7 +35,7 @@ async function wait() {
 async function main() {
   // const [Owner] = await ethers.getSigners(); // Hardhat local
 
-  // const Owner = new ethers.Wallet(process.env.BSC_PRIVATE_KEY); // Ganache or local
+  // const Owner = new ethers.Wallet(loadPrivateKey('BSC_PRIVATE_KEY')); // Ganache or local
 
   const [Admin] = await ethers.getSigners();
 

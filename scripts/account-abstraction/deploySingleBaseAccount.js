@@ -1,11 +1,12 @@
+const { loadPrivateKey } = require('../../security/foundry-keystore.js');
 const hre = require("hardhat");
 const { ethers } = require("hardhat");
 
 // IT WILL DEPLOY TO MAINNET!
 async function main() {
   const signer = process.env.SIGNER_MAINNET;
-  // const bundlerPrivateKey = process.env.AA_SIGNER_PRIVATE_KEY;
-  const bundlerPrivateKey = process.env.BUNDLER_PRIVATE_KEY_TESTNET;
+  // const bundlerPrivateKey = loadPrivateKey('AA_SIGNER_PRIVATE_KEY');
+  const bundlerPrivateKey = loadPrivateKey('BUNDLER_PRIVATE_KEY_TESTNET');
   const GFALProxy = process.env.PROXY_ADDRESS;
 
   const provider = new ethers.providers.JsonRpcProvider(
